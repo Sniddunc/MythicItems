@@ -48,7 +48,10 @@ public class BlockListeners implements Listener {
                     blockLoc.getWorld().dropItemNaturally(blockLoc, drop);
                 }
 
-                blockLoc.getWorld().dropItemNaturally(blockLoc, item.build());
+                ItemStack result = item.build();
+                result.setAmount(item.getBlockDropAmount(type));
+
+                blockLoc.getWorld().dropItemNaturally(blockLoc, result);
             }
         }
     }

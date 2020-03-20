@@ -18,9 +18,13 @@ items:
           Y: 'IRON_SWORD'
     drops:
       mobs:
-        ZOMBIE: 10
+        ZOMBIE:
+          chance: 10
+          amount: 1
       blocks:
-        IRON_BLOCK: 10
+        IRON_BLOCK:
+          chance: 10
+          amount: 1
     properties:
       canBeRenamed: false
       isUnbreakable: true

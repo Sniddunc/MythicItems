@@ -2,6 +2,7 @@ package com.github.sniddunc.mythicitems.config;
 
 import com.github.sniddunc.mythicitems.MythicItems;
 import com.github.sniddunc.mythicitems.objects.CustomItem;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -117,9 +118,10 @@ public class Config {
                         continue;
                     }
 
-                    int chance = mobDropSection.getInt(entityString, 0);
+                    int chance = mobDropSection.getInt(entityString + ".chance", 0);
+                    int amount = mobDropSection.getInt(entityString + ".amount", 0);
 
-                    item.addMobDrop(type, chance);
+                    item.addMobDrop(type, chance, amount);
                 }
             }
 
@@ -142,9 +144,10 @@ public class Config {
                         continue;
                     }
 
-                    int chance = blockDropSection.getInt(blockMatString, 0);
+                    int chance = blockDropSection.getInt(blockMatString + ".chance", 0);
+                    int amount = blockDropSection.getInt(blockMatString + ".amount", 0);
 
-                    item.addBlockDrop(blockMaterial, chance);
+                    item.addBlockDrop(blockMaterial, chance, amount);
                 }
             }
 

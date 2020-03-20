@@ -2,7 +2,6 @@ package com.github.sniddunc.mythicitems.objects;
 
 import com.github.sniddunc.mythicitems.MythicItems;
 import com.github.sniddunc.mythicitems.enchantments.GlowEffect;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -26,10 +25,10 @@ public class CustomItem {
 
     private ShapedRecipe craftingRecipe;
 
-    private HashMap<EntityType, Integer> mobDropMap;
+    private HashMap<EntityType, ItemValuePair> mobDropMap;
     private boolean isDroppedByMobs;
 
-    private HashMap<Material, Integer> blockDropMap;
+    private HashMap<Material, ItemValuePair> blockDropMap;
     private boolean isDroppedByBlocks;
 
     private boolean canBeRenamed;
@@ -103,8 +102,8 @@ public class CustomItem {
         this.craftingRecipe = craftingRecipe;
     }
 
-    public void addMobDrop(EntityType type, int chance) {
-        mobDropMap.put(type, chance);
+    public void addMobDrop(EntityType type, int chance, int amount) {
+        mobDropMap.put(type, new ItemValuePair(chance, amount));
         isDroppedByMobs = true;
     }
 
@@ -117,11 +116,15 @@ public class CustomItem {
     }
 
     public int getMobDropChance(EntityType type) {
-        return mobDropMap.get(type);
+        return mobDropMap.get(type).getChance();
     }
 
-    public void addBlockDrop(Material type, int chance) {
-        blockDropMap.put(type, chance);
+    public int getMobDropAmount(EntityType type) {
+        return mobDropMap.get(type).getAmount();
+    }
+
+    public void addBlockDrop(Material type, int chance, int amount) {
+        blockDropMap.put(type, new ItemValuePair(chance, amount));
         isDroppedByBlocks = true;
     }
 
@@ -134,7 +137,11 @@ public class CustomItem {
     }
 
     public int getBlockDropChance(Material type) {
-        return blockDropMap.get(type);
+        return blockDropMap.get(type).getChance();
+    }
+
+    public int getBlockDropAmount(Material type) {
+        return blockDropMap.get(type).getAmount();
     }
 
     public boolean canBeRenamed() {

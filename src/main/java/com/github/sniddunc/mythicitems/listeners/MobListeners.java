@@ -2,11 +2,13 @@ package com.github.sniddunc.mythicitems.listeners;
 
 import com.github.sniddunc.mythicitems.objects.CustomItem;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.Random;
 
@@ -27,20 +29,25 @@ public class MobListeners implements Listener {
             return;
         }
 
+        EntityType type = victim.getType();
+
         for (CustomItem item : CustomItem.getAllItems()) {
             if (!item.isDroppedByMobs()) {
                 continue;
             }
 
-            if (!item.isDroppedByMob(victim.getType())) {
+            if (!item.isDroppedByMob(type)) {
                 continue;
             }
 
-            int chance = item.getMobDropChance(victim.getType());
+            int chance = item.getMobDropChance(type);
             int rand = randy.nextInt(100);
 
             if (rand <= chance) {
-                event.getDrops().add(item.build());
+                ItemStack result = item.build();
+                result.setAmount(item.getMobDropAmount(type));
+
+                event.getDrops().add(result);
             }
         }
     }
