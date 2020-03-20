@@ -36,6 +36,8 @@ public class Config {
         for (String itemName : itemSection.getKeys(false)) {
             path = "items." + itemName + ".";
 
+            plugin.getConsole().sendMessage(ChatColor.GRAY + String.format("Loading item '%s'...", itemName));
+
             ///////////////////////////////
             // MATERIAL PARSING
             String materialString = config.getString(path + "material", null);
@@ -177,6 +179,9 @@ public class Config {
                     if (materialSection != null) {
                         for (String placeholder : materialSection.getKeys(false)) {
                             String placeholderMatString = materialSection.getString(placeholder, "");
+                            // We can assert this to get rid of editor warnings since placeholderMatString
+                            // will never be null due to it having a default value set.
+                            assert placeholderMatString != null;
                             Material placeholderMaterial = Material.getMaterial(placeholderMatString);
 
                             if (placeholderMaterial == null) {

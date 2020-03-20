@@ -2,7 +2,7 @@ name: MythicItems
 version: ${project.version}
 main: com.github.sniddunc.mythicitems.MythicItems
 api-version: 1.13
-load: STARTUP
+load: POSTWORLD
 authors: [sniddunc]
 description: A simple to use, congfigurable custom item API
 commands:
