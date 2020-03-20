@@ -1,0 +1,26 @@
+items:
+  test_item:
+    material: 'IRON_SWORD'
+    displayName: '&e&lTest Item'
+    lore:
+      - 'This is a test item'
+      - 'It has &e2 lines of lore'
+    enchantments:
+      sharpness: 1
+    recipe:
+      crafting:
+        pattern:
+          - 'XXX'
+          - 'XYX'
+          - 'XXX'
+        materials:
+          X: 'IRON_INGOT'
+          Y: 'IRON_SWORD'
+    drops:
+      mobs:
+        ZOMBIE: 10
+      blocks:
+        IRON_BLOCK: 10
+    properties:
+      canBeRenamed: false
+      isUnbreakable: true
