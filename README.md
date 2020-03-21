@@ -9,13 +9,14 @@ Current features:
 * Custom name and lore
 * Enchantments
 * Glow effect without enchantments
-* Custom crafting recipes
-* Mob drops
+* Custom crafting recipes that can use other custom items
+* Custom furnace recipes with exp and cook time control
+* Entity drops
 * Block drops
 * Other modifiable attributes
 
 Planned Features:
-* Item creation through the API
+* Easier creation through the API
 * Documentation
 * Potion Support
 
