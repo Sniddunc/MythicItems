@@ -2,6 +2,7 @@ package com.github.sniddunc.mythicitems.config;
 
 import com.github.sniddunc.mythicitems.MythicItems;
 import com.github.sniddunc.mythicitems.objects.CustomItem;
+import com.github.sniddunc.mythicitems.objects.ItemValuePair;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -12,6 +13,7 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentWrapper;
 import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.FurnaceRecipe;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.RecipeChoice;
 import org.bukkit.inventory.ShapedRecipe;
 
@@ -21,6 +23,7 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Config {
     public static void init() {
@@ -279,6 +282,7 @@ public class Config {
                     NamespacedKey recipeKey = new NamespacedKey(plugin, itemName + "-smelting");
                     FurnaceRecipe recipe = new FurnaceRecipe(recipeKey, item.build(), new RecipeChoice.MaterialChoice(inputMaterial), exp, cookTime);
 
+                    item.setFurnaceRecipe(recipe);
                     plugin.getServer().addRecipe(recipe);
                 }
 
@@ -299,6 +303,7 @@ public class Config {
 
     public static void reload() {
         MythicItems.getInstance().reloadConfig();
+        init();
     }
 
     public static File getConfigFile() {
@@ -311,5 +316,88 @@ public class Config {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void saveCustomItem(CustomItem item) {
+        FileConfiguration config = MythicItems.getInstance().getConfig();
+
+//        this.name = name;
+//        displayName = "Unnamed";
+//        lore = new ArrayList<>();
+//        material = Material.DIRT;
+//        enchantments = new HashMap<>();
+//        craftingRecipe = null;
+//        craftingPattern = new ArrayList<>();
+//        customIngredients = new HashMap<>();
+//        hasCustomIngredients = false;
+//        mobDropMap = new HashMap<>();
+//        isDroppedByMobs = false;
+//        blockDropMap = new HashMap<>();
+//        isDroppedByBlocks = false;
+//        canBeRenamed = false;
+//        isUnbreakable = false;
+//        isGlowing = false;
+
+        String path = "items." + item.getName();
+
+        // Save displayName material and lore
+        config.set(path + ".displayName", item.getDisplayName());
+        config.set(path + ".material", item.getMaterial().toString());
+        config.set(path + ".lore", item.getLore());
+
+        // Save enchantments
+        Map<Enchantment, Integer> enchantments = item.getEnchantments();
+
+        for (Enchantment enchant : enchantments.keySet()) {
+            config.set(path + ".enchantments." + enchant.getKey().getKey(), enchantments.get(enchant));
+        }
+
+        // Save crafting recipe
+        config.set(path + ".recipe.crafting.pattern", item.getCraftingPattern());
+
+        // Write basic materials first, and then update them to any custom values
+        Map<Character, ItemStack> ingredientMap =  item.getCraftingRecipe().getIngredientMap();
+
+        for (char placeholder : ingredientMap.keySet()) {
+            config.set(path + ".recipe.crafting.materials." + placeholder, ingredientMap.get(placeholder).getType().toString());
+        }
+
+        if (item.hasCustomIngredients()) {
+            // Update to any custom values
+            Map<Character, String> customIngredientMap = item.getCustomIngredients();
+
+            for (char placeholder : customIngredientMap.keySet()) {
+                config.set(path + ".recipe.crafting.materials." + placeholder, "custom/" + ingredientMap.get(placeholder).getType().toString());
+            }
+        }
+
+        // Save furnace recipe
+        config.set(path + ".recipe.furnace.input", item.getFurnaceRecipe().getInput().getType().toString());
+        config.set(path + ".recipe.furnace.exp", item.getFurnaceRecipe().getExperience());
+        config.set(path + ".recipe.furnace.cookTime", item.getFurnaceRecipe().getCookingTime());
+
+        // Save mob drops
+        HashMap<EntityType, ItemValuePair> mobDrops = item.getMobDrops();
+
+        for (EntityType entity : mobDrops.keySet()) {
+            config.set(path + ".drops.mobs." + entity.toString() + ".chance", mobDrops.get(entity).getChance());
+            config.set(path + ".drops.mobs." + entity.toString() + ".amount", mobDrops.get(entity).getAmount());
+        }
+
+        // Save block drops
+        HashMap<Material, ItemValuePair> blockDrops = item.getBlockDrops();
+
+        for (Material material : blockDrops.keySet()) {
+            config.set(path + ".drops.blocks." + material.toString() + ".chance", blockDrops.get(material).getChance());
+            config.set(path + ".drops.blocks." + material.toString() + ".amount", blockDrops.get(material).getAmount());
+        }
+
+        // Save misc. properties
+        config.set(path + ".properties.canBeRenamed", item.canBeRenamed());
+        config.set(path + ".properties.isGlowing", item.isGlowing());
+        config.set(path + ".properties.isUnbreakable", item.isUnbreakable());
+
+        // Save to file
+        saveConfig(config);
     }
 }
