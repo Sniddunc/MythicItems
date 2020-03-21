@@ -3,6 +3,7 @@ package com.github.sniddunc.mythicitems.objects;
 import com.github.sniddunc.mythicitems.MythicItems;
 import com.github.sniddunc.mythicitems.enchantments.GlowEffect;
 import org.bukkit.ChatColor;
+import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
@@ -11,6 +12,8 @@ import org.bukkit.inventory.FurnaceRecipe;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.potion.PotionEffect;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -24,6 +27,8 @@ public class CustomItem {
     private Material material;
 
     private Map<Enchantment, Integer> enchantments;
+
+    private List<PotionEffect> potionEffects;
 
     private ShapedRecipe craftingRecipe;
     private List<String> craftingPattern;
@@ -42,6 +47,8 @@ public class CustomItem {
     private boolean isUnbreakable;
     private boolean isGlowing;
 
+    private Color potionColor;
+
     /**
      * Only use this constructor from within MythicItems itself.
      * For API use, use the ItemAPI functionality to create items.
@@ -53,6 +60,7 @@ public class CustomItem {
         lore = new ArrayList<>();
         material = Material.DIRT;
         enchantments = new HashMap<>();
+        potionEffects = new ArrayList<>();
         craftingRecipe = null;
         craftingPattern = new ArrayList<>();
         customIngredients = new HashMap<>();
@@ -65,6 +73,7 @@ public class CustomItem {
         canBeRenamed = false;
         isUnbreakable = false;
         isGlowing = false;
+        potionColor = null;
     }
 
     public String getName() {
@@ -112,6 +121,14 @@ public class CustomItem {
 
     public Map<Enchantment, Integer> getEnchantments() {
         return enchantments;
+    }
+
+    public void addPotionEffect(PotionEffect effect) {
+        potionEffects.add(effect);
+    }
+
+    public List<PotionEffect> getPotionEffects() {
+        return potionEffects;
     }
 
     public ShapedRecipe getCraftingRecipe() {
@@ -225,6 +242,14 @@ public class CustomItem {
         this.isGlowing = isGlowing;
     }
 
+    public Color getPotionColor() {
+        return potionColor;
+    }
+
+    public void setPotionColor(Color potionColor) {
+        this.potionColor = potionColor;
+    }
+
     public String getItemTag() {
         return Base64.getEncoder().encodeToString(name.getBytes());
     }
@@ -249,16 +274,30 @@ public class CustomItem {
             meta.addEnchant(enchantment, enchantments.get(enchantment), true);
         }
 
+        meta.setUnbreakable(isUnbreakable);
+
+        item.setItemMeta(meta);
+
+        // Apply potion effects if the item is a potion
+        if (material.equals(Material.POTION)) {
+            PotionMeta potionMeta = (PotionMeta) meta;
+
+            for (PotionEffect effect : potionEffects) {
+                potionMeta.addCustomEffect(effect, true);
+            }
+
+            // Also, apply the potionColor property if it's set
+            potionMeta.setColor(potionColor);
+
+            item.setItemMeta(potionMeta);
+        }
+
         // If there are no enchantments and the item should still glow, we add our custom glow effect enchantment
         if (isGlowing && enchantments.size() == 0) {
             NamespacedKey key = new NamespacedKey(MythicItems.getInstance(), MythicItems.getInstance().getDescription().getName());
             GlowEffect glowEffect = new GlowEffect(key);
             meta.addEnchant(glowEffect, 1, true);
         }
-
-        meta.setUnbreakable(isUnbreakable);
-
-        item.setItemMeta(meta);
 
         return item;
     }

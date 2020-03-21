@@ -8,6 +8,7 @@ Current features:
 * Developer API
 * Custom name and lore
 * Enchantments
+* Potion support
 * Glow effect without enchantments
 * Custom crafting recipes that can use other custom items
 * Custom furnace recipes with exp and cook time control
@@ -16,8 +17,8 @@ Current features:
 * Other modifiable attributes
 
 Planned Features:
-* Easier creation through the API
+* Brewing Stand Recipes
+* Easier API
 * Documentation
-* Potion Support
 
 The initial version of this plugin was made over the course of 3 hours, so there likely are some bugs. If you find any, feel free to report them, or to fix it yourself. Contributions are welcome.

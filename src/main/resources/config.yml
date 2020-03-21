@@ -45,3 +45,12 @@ items:
           X: 'custom/test_item'
     properties:
       isGlowing: true
+  test_potion:
+    material: POTION
+    displayName: '&fTest Potion'
+    effects:
+      SPEED:
+        level: 1
+        duration: 60
+    properties:
+      potionColor: 255,255,255

@@ -3,10 +3,7 @@ package com.github.sniddunc.mythicitems.config;
 import com.github.sniddunc.mythicitems.MythicItems;
 import com.github.sniddunc.mythicitems.objects.CustomItem;
 import com.github.sniddunc.mythicitems.objects.ItemValuePair;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
+import org.bukkit.*;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.enchantments.Enchantment;
@@ -16,6 +13,8 @@ import org.bukkit.inventory.FurnaceRecipe;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.RecipeChoice;
 import org.bukkit.inventory.ShapedRecipe;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 import java.io.File;
 import java.io.IOException;
@@ -99,6 +98,32 @@ public class Config {
             }
 
             ///////////////////////////////
+            // POTION EFFECT PARSING
+            ConfigurationSection effectSection = config.getConfigurationSection(path + "effects");
+
+            if (effectSection != null) {
+                for (String effectName : effectSection.getKeys(false)) {
+                    PotionEffectType effectType = PotionEffectType.getByName(effectName);
+
+                    if (effectType == null) {
+                        plugin.getConsole().sendMessage(ChatColor.RED + String.format(
+                                "An invalid potion effect '%s' was provided for item '%s'",
+                                effectName,
+                                itemName
+                        ));
+                        continue;
+                    }
+
+                    int level = effectSection.getInt(effectName + ".level", 0);
+                    int duration = effectSection.getInt(effectName + ".duration", 0);
+
+                    PotionEffect effect = new PotionEffect(effectType, duration * 20, level);
+
+                    item.addPotionEffect(effect);
+                }
+            }
+
+            ///////////////////////////////
             // MOB DROP PARSING
             // (must be done after the item itself is setup)
             ConfigurationSection mobDropSection = config.getConfigurationSection(path + "drops.mobs");
@@ -165,6 +190,20 @@ public class Config {
                 item.setCanBeRenamed(propertiesSection.getBoolean("canBeRenamed", false));
                 item.setUnbreakable(propertiesSection.getBoolean("isUnbreakable", false));
                 item.setGlowing(propertiesSection.getBoolean("isGlowing", false));
+
+                // Potion color property
+                String potionColorString = propertiesSection.getString("potionColor", "100,100,100");
+                assert potionColorString != null;
+                String[] split = potionColorString.split(",");
+
+                int r, g, b;
+                r = Integer.parseInt(split[0]);
+                g = Integer.parseInt(split[1]);
+                b = Integer.parseInt(split[2]);
+
+                item.setPotionColor(Color.fromRGB(r, g, b));
+
+                plugin.getConsole().sendMessage("Potion color: " + r + "," + b + "," + g);
             }
 
             ///////////////////////////////
@@ -352,6 +391,14 @@ public class Config {
             config.set(path + ".enchantments." + enchant.getKey().getKey(), enchantments.get(enchant));
         }
 
+        // Save potion effect
+        for (PotionEffect effect : item.getPotionEffects()) {
+            String effectName = effect.getType().getName();
+
+            config.set(path + ".effects." + effectName + ".level", effect.getAmplifier());
+            config.set(path + ".effects." + effectName + ".duration", effect.getDuration());
+        }
+
         // Save crafting recipe
         config.set(path + ".recipe.crafting.pattern", item.getCraftingPattern());
 
@@ -396,6 +443,18 @@ public class Config {
         config.set(path + ".properties.canBeRenamed", item.canBeRenamed());
         config.set(path + ".properties.isGlowing", item.isGlowing());
         config.set(path + ".properties.isUnbreakable", item.isUnbreakable());
+
+        // Save potion color property
+        Color potionColor = item.getPotionColor();
+
+        if (potionColor != null) {
+            config.set(path + ".properties.potionColor", String.format(
+                    "%s,%s,%s",
+                    potionColor.getRed(),
+                    potionColor.getGreen(),
+                    potionColor.getBlue()
+            ));
+        }
 
         // Save to file
         saveConfig(config);
