@@ -5,7 +5,7 @@ MythicItems is a Spigot plugin which allows server administrators and plugin dev
 This plugin is meant to be used as an API. Items created here are able to be easily accessed by other plugins.
 
 Current features:
-* All materials supported
+* Developer API
 * Custom name and lore
 * Enchantments
 * Glow effect without enchantments
