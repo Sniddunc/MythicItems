@@ -11,6 +11,8 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentWrapper;
 import org.bukkit.entity.EntityType;
+import org.bukkit.inventory.FurnaceRecipe;
+import org.bukkit.inventory.RecipeChoice;
 import org.bukkit.inventory.ShapedRecipe;
 
 import java.io.File;
@@ -171,7 +173,7 @@ public class Config {
                 List<String> pattern = craftingSection.getStringList("pattern");
 
                 if (pattern.size() == 3) {
-                    NamespacedKey recipeKey = new NamespacedKey(plugin, itemName);
+                    NamespacedKey recipeKey = new NamespacedKey(plugin, itemName + "-crafting");
                     ShapedRecipe recipe = new ShapedRecipe(recipeKey, item.build());
 
                     // Set crafting pattern
@@ -185,22 +187,61 @@ public class Config {
                             // We can assert this to get rid of editor warnings since placeholderMatString
                             // will never be null due to it having a default value set.
                             assert placeholderMatString != null;
-                            Material placeholderMaterial = Material.getMaterial(placeholderMatString);
 
-                            if (placeholderMaterial == null) {
-                                plugin.getConsole().sendMessage(ChatColor.RED + String.format(
-                                        "Material provided '%s' in the crafting pattern for item '%s' is invalid",
-                                        placeholder,
-                                        itemName
+                            // Check if this matString is actually a custom item
+                            String[] split = placeholderMatString.split("/");
+                            if (split.length == 2 && split[0].equals("custom")) {
+                                CustomItem customIngredient = CustomItem.getItem(split[1]);
+
+                                // Check if custom item exists
+                                if (customIngredient == null) {
+                                    plugin.getConsole().sendMessage(ChatColor.RED + String.format(
+                                            "Custom item '%s' provided as a material in the crafting recipe for item '%s' is invalid",
+                                            split[1],
+                                            itemName
+                                    ));
+
+                                    plugin.getConsole().sendMessage(ChatColor.RED + String.format(
+                                            "Make sure '%s' is loaded before item '%s'",
+                                            split[1],
+                                            itemName
+                                    ));
+
+                                    continue;
+                                }
+
+                                item.addCustomCraftingIngredient(placeholder.charAt(0), customIngredient.getItemTag());
+
+                                plugin.getConsole().sendMessage(customIngredient.getItemTag() + " is the tag for " + itemName);
+
+                                plugin.getConsole().sendMessage(ChatColor.GRAY + String.format(
+                                        "> depends on '%s'",
+                                        split[1]
                                 ));
 
-                                continue;
+                                Material placeholderMaterial = customIngredient.getMaterial();
+                                recipe.setIngredient(placeholder.charAt(0), placeholderMaterial);
                             }
 
-                            recipe.setIngredient(placeholder.charAt(0), placeholderMaterial);
+                            else {
+                                Material placeholderMaterial = Material.getMaterial(placeholderMatString);
+
+                                if (placeholderMaterial == null) {
+                                    plugin.getConsole().sendMessage(ChatColor.RED + String.format(
+                                            "Material provided '%s' in the crafting pattern for item '%s' is invalid",
+                                            placeholder,
+                                            itemName
+                                    ));
+
+                                    continue;
+                                }
+
+                                recipe.setIngredient(placeholder.charAt(0), placeholderMaterial);
+                            }
                         }
 
                         // Everything's valid! Register recipe on server
+                        item.setCraftingPattern(pattern);
                         item.setCraftingRecipe(recipe);
                         plugin.getServer().addRecipe(recipe);
                     }
@@ -221,9 +262,38 @@ public class Config {
                 }
             }
 
+            ///////////////////////////////
+            // FURNACE RECIPE PARSING
+            // (should be done last)
+            ConfigurationSection furnaceSection = config.getConfigurationSection(path + "recipe.furnace");
+
+            if (furnaceSection != null) {
+                String inputString = furnaceSection.getString("input", null);
+
+                Material inputMaterial = Material.getMaterial(inputString);
+
+                if (inputMaterial != null) {
+                    int exp = furnaceSection.getInt("exp", 0);
+                    int cookTime = furnaceSection.getInt("cookTime", 20);
+
+                    NamespacedKey recipeKey = new NamespacedKey(plugin, itemName + "-smelting");
+                    FurnaceRecipe recipe = new FurnaceRecipe(recipeKey, item.build(), new RecipeChoice.MaterialChoice(inputMaterial), exp, cookTime);
+
+                    plugin.getServer().addRecipe(recipe);
+                }
+
+                else {
+                    plugin.getConsole().sendMessage(ChatColor.RED + String.format(
+                            "Material provided '%s' as the furnace input for item '%s' is invalid",
+                            inputString,
+                            itemName
+                    ));
+                }
+            }
+
             // Register item to list
             CustomItem.registerNewItem(item);
-            plugin.getConsole().sendMessage(ChatColor.GREEN + String.format("> Registered item '%s'", itemName));
+            plugin.getConsole().sendMessage(ChatColor.GREEN + String.format("Registered item '%s'", itemName));
         }
     }
 

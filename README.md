@@ -16,7 +16,6 @@ Current features:
 
 Planned Features:
 * Item creation through the API
-* Furnace recipes
 * Documentation
 * Potion Support
 

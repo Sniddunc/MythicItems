@@ -16,6 +16,10 @@ items:
         materials:
           X: 'IRON_INGOT'
           Y: 'IRON_SWORD'
+      furnace:
+        input: 'IRON_SWORD'
+        exp: 10
+        cookTime: 20
     drops:
       mobs:
         ZOMBIE:
@@ -28,3 +32,16 @@ items:
     properties:
       canBeRenamed: false
       isUnbreakable: true
+  test_craft:
+    material: 'BRICK'
+    displayName: '&aTest Craft Result'
+    recipe:
+      crafting:
+        pattern:
+          - 'XXX'
+          - '   '
+          - '   '
+        materials:
+          X: 'custom/test_item'
+    properties:
+      isGlowing: true

@@ -11,6 +11,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class CustomItem {
@@ -24,6 +25,9 @@ public class CustomItem {
     private Map<Enchantment, Integer> enchantments;
 
     private ShapedRecipe craftingRecipe;
+    private List<String> craftingPattern;
+    private HashMap<Character, String> customIngredients;
+    private boolean hasCustomIngredients;
 
     private HashMap<EntityType, ItemValuePair> mobDropMap;
     private boolean isDroppedByMobs;
@@ -42,6 +46,9 @@ public class CustomItem {
         material = Material.DIRT;
         enchantments = new HashMap<>();
         craftingRecipe = null;
+        craftingPattern = new ArrayList<>();
+        customIngredients = new HashMap<>();
+        hasCustomIngredients = false;
         mobDropMap = new HashMap<>();
         isDroppedByMobs = false;
         blockDropMap = new HashMap<>();
@@ -100,6 +107,27 @@ public class CustomItem {
 
     public void setCraftingRecipe(ShapedRecipe craftingRecipe) {
         this.craftingRecipe = craftingRecipe;
+    }
+
+    public List<String> getCraftingPattern() {
+        return craftingPattern;
+    }
+
+    public void setCraftingPattern(List<String> pattern) {
+        this.craftingPattern = pattern;
+    }
+
+    public void addCustomCraftingIngredient(char placeholder, String itemTag) {
+        customIngredients.put(placeholder, itemTag);
+        hasCustomIngredients = true;
+    }
+
+    public HashMap<Character, String> getCustomIngredients() {
+        return customIngredients;
+    }
+
+    public boolean hasCustomIngredients() {
+        return hasCustomIngredients;
     }
 
     public void addMobDrop(EntityType type, int chance, int amount) {
@@ -168,6 +196,10 @@ public class CustomItem {
         this.isGlowing = isGlowing;
     }
 
+    public String getItemTag() {
+        return Base64.getEncoder().encodeToString(name.getBytes());
+    }
+
     public ItemStack build() {
         ItemStack item = new ItemStack(material, 1);
 
@@ -180,7 +212,7 @@ public class CustomItem {
         // We could show it in plain text, but obfuscating it will provide users a better experience instead of showing
         // 2 different versions of the name and making them guess which they should use (name & display name).
         List<String> tempLore = new ArrayList<>(lore);
-        tempLore.add(ChatColor.BLACK + Base64.getEncoder().encodeToString(name.getBytes()));
+        tempLore.add(ChatColor.BLACK + getItemTag());
         meta.setLore(tempLore);
 
         // Apply enchantments
@@ -246,5 +278,51 @@ public class CustomItem {
 
     public static List<CustomItem> getAllItems() {
         return allItems;
+    }
+
+    /**
+     * getItemByTag reads an item's lore and searches for a tag. If it finds one, it decodes it and returns
+     * the CustomItem instance it's part of. Null is returned in case of error.
+     * @param item The item to check
+     * @return CustomItem
+     */
+    public static CustomItem getItemByTag(ItemStack item) {
+        String tag = getTag(item);
+
+        if (tag == null) {
+            return null;
+        }
+
+        String itemName = null;
+
+        try {
+            itemName = new String(Base64.getDecoder().decode(tag.getBytes()), StandardCharsets.UTF_8);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+
+        return CustomItem.getItem(itemName);
+    }
+
+    public static String getTag(ItemStack item) {
+        if (item == null || !item.hasItemMeta() || !item.getItemMeta().hasLore()) {
+            return null;
+        }
+
+        List<String> lore = item.getItemMeta().getLore();
+
+        if (lore == null || lore.size() == 0) {
+            return null;
+        }
+
+        // Extract what might be a tag from the last line of the lore
+        String tag = ChatColor.stripColor(lore.get(lore.size() - 1));
+//
+//        // Ensure there is no padding ==
+//        if (tag.substring(tag.length() - 2).equals("==")) {
+//            tag = tag.substring(0, tag.length() - 2);
+//        }
+
+        return tag;
     }
 }
