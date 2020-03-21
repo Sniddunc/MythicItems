@@ -7,6 +7,7 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.EntityType;
+import org.bukkit.inventory.FurnaceRecipe;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -29,6 +30,8 @@ public class CustomItem {
     private HashMap<Character, String> customIngredients;
     private boolean hasCustomIngredients;
 
+    private FurnaceRecipe furnaceRecipe;
+
     private HashMap<EntityType, ItemValuePair> mobDropMap;
     private boolean isDroppedByMobs;
 
@@ -39,6 +42,11 @@ public class CustomItem {
     private boolean isUnbreakable;
     private boolean isGlowing;
 
+    /**
+     * Only use this constructor from within MythicItems itself.
+     * For API use, use the ItemAPI functionality to create items.
+     * @param name
+     */
     public CustomItem(String name) {
         this.name = name;
         displayName = "Unnamed";
@@ -49,6 +57,7 @@ public class CustomItem {
         craftingPattern = new ArrayList<>();
         customIngredients = new HashMap<>();
         hasCustomIngredients = false;
+        furnaceRecipe = null;
         mobDropMap = new HashMap<>();
         isDroppedByMobs = false;
         blockDropMap = new HashMap<>();
@@ -101,6 +110,10 @@ public class CustomItem {
         enchantments.put(enchantment, level);
     }
 
+    public Map<Enchantment, Integer> getEnchantments() {
+        return enchantments;
+    }
+
     public ShapedRecipe getCraftingRecipe() {
         return craftingRecipe;
     }
@@ -130,6 +143,14 @@ public class CustomItem {
         return hasCustomIngredients;
     }
 
+    public FurnaceRecipe getFurnaceRecipe() {
+        return furnaceRecipe;
+    }
+
+    public void setFurnaceRecipe(FurnaceRecipe furnaceRecipe) {
+        this.furnaceRecipe = furnaceRecipe;
+    }
+
     public void addMobDrop(EntityType type, int chance, int amount) {
         mobDropMap.put(type, new ItemValuePair(chance, amount));
         isDroppedByMobs = true;
@@ -151,6 +172,10 @@ public class CustomItem {
         return mobDropMap.get(type).getAmount();
     }
 
+    public HashMap<EntityType, ItemValuePair> getMobDrops() {
+        return mobDropMap;
+    }
+
     public void addBlockDrop(Material type, int chance, int amount) {
         blockDropMap.put(type, new ItemValuePair(chance, amount));
         isDroppedByBlocks = true;
@@ -170,6 +195,10 @@ public class CustomItem {
 
     public int getBlockDropAmount(Material type) {
         return blockDropMap.get(type).getAmount();
+    }
+
+    public HashMap<Material, ItemValuePair> getBlockDrops() {
+        return blockDropMap;
     }
 
     public boolean canBeRenamed() {
@@ -274,6 +303,10 @@ public class CustomItem {
      */
     public static CustomItem getItem(String name) {
         return itemMap.get(name);
+    }
+
+    public static boolean itemExists(String name) {
+        return itemMap.containsKey(name);
     }
 
     public static List<CustomItem> getAllItems() {

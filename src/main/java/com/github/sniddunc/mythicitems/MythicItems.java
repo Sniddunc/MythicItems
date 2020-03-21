@@ -3,6 +3,7 @@ package com.github.sniddunc.mythicitems;
 import com.github.sniddunc.mythicitems.commands.MythicItemsCommand;
 import com.github.sniddunc.mythicitems.config.Config;
 import com.github.sniddunc.mythicitems.enchantments.GlowEffect;
+import com.github.sniddunc.mythicitems.exceptions.InvalidNamespaceException;
 import com.github.sniddunc.mythicitems.listeners.BlockListeners;
 import com.github.sniddunc.mythicitems.listeners.CraftListeners;
 import com.github.sniddunc.mythicitems.listeners.MobListeners;
@@ -12,6 +13,7 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.io.File;
 import java.lang.reflect.Field;
 
 public final class MythicItems extends JavaPlugin {
@@ -28,13 +30,16 @@ public final class MythicItems extends JavaPlugin {
         pdf = this.getDescription();
         console = this.getServer().getConsoleSender();
 
-        if  (!this.getDataFolder().exists()) {
+        if (!this.getDataFolder().exists()) {
             this.getDataFolder().mkdirs();
         }
 
+        if (!new File(this.getDataFolder(), "config.yml").exists()) {
+            getConfig().options().copyDefaults(true);
+            saveConfig();
+        }
+
         // Config setup
-        getConfig().options().copyDefaults(true);
-        saveConfig();
         Config.init();
 
         // Register custom glow effect
@@ -72,11 +77,15 @@ public final class MythicItems extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        // Plugin shutdown logic
+        getServer().resetRecipes();
     }
 
     public ConsoleCommandSender getConsole() {
         return console;
+    }
+
+    public ItemAPI getItemAPI(String namespace) throws InvalidNamespaceException {
+        return new ItemAPI(namespace);
     }
 
     public static MythicItems getInstance() {
