@@ -4,12 +4,18 @@ import com.github.sniddunc.mythicitems.commands.MythicItemsCommand;
 import com.github.sniddunc.mythicitems.config.Config;
 import com.github.sniddunc.mythicitems.enchantments.GlowEffect;
 import com.github.sniddunc.mythicitems.exceptions.InvalidNamespaceException;
+import com.github.sniddunc.mythicitems.interfaces.BrewAction;
 import com.github.sniddunc.mythicitems.listeners.BlockListeners;
 import com.github.sniddunc.mythicitems.listeners.CraftListeners;
 import com.github.sniddunc.mythicitems.listeners.MobListeners;
-import org.bukkit.NamespacedKey;
+import com.github.sniddunc.mythicitems.objects.BrewingRecipe;
+import org.bukkit.*;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.inventory.BrewerInventory;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -52,6 +58,19 @@ public final class MythicItems extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new MobListeners(), this);
         getServer().getPluginManager().registerEvents(new BlockListeners(), this);
         getServer().getPluginManager().registerEvents(new CraftListeners(), this);
+
+        new BrewingRecipe(new ItemStack(Material.DIRT), (inventory, item, ingredient) -> {
+            inventory.setItem(1, new ItemStack(Material.DIAMOND));
+        });
+
+//        new BrewingRecipe(Material.WHITE_WOOL, (inventory, item, ingredient) -> {//Some lambda magic
+//            if (!item.getType().toString().contains("LEATER"))
+//                return;
+//            LeatherArmorMeta armorMeta = (LeatherArmorMeta) item.getItemMeta();
+//            Color color = Color.RED;
+//            armorMeta.setColor(color);
+//            item.setItemMeta(armorMeta);
+//        });
     }
 
     public void registerGlowEffect() {

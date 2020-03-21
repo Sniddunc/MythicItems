@@ -52,5 +52,12 @@ items:
       SPEED:
         level: 1
         duration: 60
+    recipe:
+      brewing:
+        ingredient: 'DIAMOND'
+        bases:
+          - 'DIRT'
+          - 'DIRT'
+          - 'DIRT'
     properties:
       potionColor: 255,255,255

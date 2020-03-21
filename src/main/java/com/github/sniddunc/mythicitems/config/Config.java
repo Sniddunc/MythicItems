@@ -334,6 +334,10 @@ public class Config {
                 }
             }
 
+            ///////////////////////////////
+            // BREWING RECIPE PARSING
+            // (should be done last)
+
             // Register item to list
             CustomItem.registerNewItem(item);
             plugin.getConsole().sendMessage(ChatColor.GREEN + String.format("Registered item '%s'", itemName));

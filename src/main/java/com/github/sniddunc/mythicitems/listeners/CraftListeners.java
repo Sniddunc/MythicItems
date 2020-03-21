@@ -1,13 +1,17 @@
 package com.github.sniddunc.mythicitems.listeners;
 
+import com.github.sniddunc.mythicitems.MythicItems;
+import com.github.sniddunc.mythicitems.objects.BrewingRecipe;
 import com.github.sniddunc.mythicitems.objects.CustomItem;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Furnace;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.*;
+import org.bukkit.inventory.BrewerInventory;
 import org.bukkit.inventory.ItemStack;
 
 import java.nio.charset.StandardCharsets;
@@ -102,5 +106,94 @@ public class CraftListeners implements Listener {
         if (!isValid) {
             event.getInventory().setResult(null);
         }
+    }
+
+    /**
+     * Slightly hacky way to allow placement of any item into a brewing stand since Spigot doesn't help us out here
+     * @param event
+     */
+    @EventHandler
+    public void onBrewItemPlace(InventoryClickEvent event) {
+        if (event.getClickedInventory() == null
+                || !event.getClickedInventory().getType().equals(InventoryType.BREWING)
+                || event.getCursor() == null) {
+            return;
+        }
+
+        ClickType clickType = event.getClick();
+
+        ItemStack currentItem = event.getCurrentItem();
+        ItemStack clone = event.getCursor().clone();
+
+        if (clone.getType().equals(Material.AIR)) {
+            return;
+        }
+
+        Bukkit.getScheduler().scheduleSyncDelayedTask(MythicItems.getInstance(), new Runnable() {
+            @Override
+            public void run() {
+                if (clickType == ClickType.LEFT) {
+                    event.getWhoClicked().setItemOnCursor(currentItem);
+                    event.getClickedInventory().setItem(event.getSlot(), clone);
+                }
+
+                else if (clickType == ClickType.RIGHT) {
+                    clone.setAmount(1);
+
+                    ItemStack currentCursorItem = event.getWhoClicked().getItemOnCursor();
+
+                    if (currentCursorItem.getAmount() > 0) {
+                        currentCursorItem.setAmount(currentCursorItem.getAmount() - 1);
+                    }
+                    else {
+                        currentCursorItem.setAmount(0);
+                    }
+
+                    event.getWhoClicked().setItemOnCursor(currentCursorItem);
+                    event.getClickedInventory().setItem(event.getSlot(), clone);
+                }
+            }
+        }, 0L);
+
+        ((Player) event.getView().getPlayer()).updateInventory();
+    }
+
+    @EventHandler
+    public void onBrew(InventoryClickEvent event) {
+        if (event.getClickedInventory() == null
+                || !event.getClickedInventory().getType().equals(InventoryType.BREWING)) {
+            return;
+        }
+
+        Bukkit.getScheduler().scheduleSyncDelayedTask(MythicItems.getInstance(), new Runnable() {
+            @Override
+            public void run() {
+                BrewerInventory inventory = (BrewerInventory) event.getClickedInventory();
+
+                boolean empty = true;
+
+                // Check if contents are empty
+                for (int i = 0; i < 3; i++) {
+                    if (inventory.getItem(i) == null || inventory.getItem(i).getType() == Material.AIR) {
+                        continue;
+                    }
+
+                    empty = false;
+                    break;
+                }
+
+                if (inventory.getIngredient() == null || empty) {
+                    return;
+                }
+
+                BrewingRecipe recipe = BrewingRecipe.getRecipe(inventory);
+
+                if (recipe == null) {
+                    return;
+                }
+
+                recipe.startBrewing(inventory);
+            }
+        }, 1L);
     }
 }
