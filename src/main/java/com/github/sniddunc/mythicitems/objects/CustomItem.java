@@ -14,6 +14,7 @@ import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -128,8 +129,8 @@ public class CustomItem {
         return enchantments;
     }
 
-    public void addPotionEffect(PotionEffect effect) {
-        potionEffects.add(effect);
+    public void addPotionEffect(PotionEffectType type, int seconds, int amplifier) {
+        potionEffects.add(new PotionEffect(type, seconds * 20, amplifier));
     }
 
     public List<PotionEffect> getPotionEffects() {
@@ -280,7 +281,7 @@ public class CustomItem {
 
         ItemMeta meta = item.getItemMeta();
 
-        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', displayName));
+        meta.setDisplayName(ChatColor.RESET + ChatColor.translateAlternateColorCodes('&', displayName));
 
         // Lore + base64 tag
         // We use the base64 to uniquely identify the item. It's generated off of it's name which should be unique.
@@ -317,7 +318,7 @@ public class CustomItem {
         if (isGlowing && enchantments.size() == 0) {
             NamespacedKey key = new NamespacedKey(MythicItems.getInstance(), MythicItems.getInstance().getDescription().getName());
             GlowEffect glowEffect = new GlowEffect(key);
-            meta.addEnchant(glowEffect, 1, true);
+            item.addUnsafeEnchantment(glowEffect, 1);
         }
 
         return item;

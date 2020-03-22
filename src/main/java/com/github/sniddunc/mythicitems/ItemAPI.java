@@ -3,7 +3,15 @@ package com.github.sniddunc.mythicitems;
 import com.github.sniddunc.mythicitems.config.Config;
 import com.github.sniddunc.mythicitems.exceptions.InvalidNamespaceException;
 import com.github.sniddunc.mythicitems.objects.CustomItem;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.inventory.FurnaceRecipe;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.RecipeChoice;
+import org.bukkit.inventory.ShapedRecipe;
+import org.bukkit.plugin.Plugin;
+
+import java.util.List;
 
 public class ItemAPI {
 
@@ -23,6 +31,7 @@ public class ItemAPI {
      */
     public CustomItem createNewItem(String name) {
         String fullName = namespace + "/" + name;
+
         return CustomItem.itemExists(fullName) ? null : new CustomItem(fullName);
     }
 
@@ -55,7 +64,7 @@ public class ItemAPI {
             return item1Tag.equals(item2.getItemTag());
         }
 
-        public CustomItem getItemByName(String namespace, String name) {
+        public static CustomItem getItemByName(String namespace, String name) {
             return CustomItem.getItem(namespace + "/" + name);
         }
     }

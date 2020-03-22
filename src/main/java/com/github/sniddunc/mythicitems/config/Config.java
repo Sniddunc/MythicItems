@@ -124,9 +124,7 @@ public class Config {
                     int level = effectSection.getInt(effectName + ".level", 0);
                     int duration = effectSection.getInt(effectName + ".duration", 0);
 
-                    PotionEffect effect = new PotionEffect(effectType, duration * 20, level);
-
-                    item.addPotionEffect(effect);
+                    item.addPotionEffect(effectType, duration, level);
                 }
             }
 
@@ -237,7 +235,7 @@ public class Config {
 
                             // Check if this matString is actually a custom item
                             String[] split = placeholderMatString.split("/");
-                            if (split.length == 2 && split[0].equals("custom")) {
+                            if (split.length >= 2 && split[0].equals("custom")) {
                                 CustomItem customIngredient = CustomItem.getItem(split[1]);
 
                                 // Check if custom item exists
@@ -258,8 +256,6 @@ public class Config {
                                 }
 
                                 item.addCustomCraftingIngredient(placeholder.charAt(0), customIngredient.getItemTag());
-
-                                plugin.getConsole().sendMessage(customIngredient.getItemTag() + " is the tag for " + itemName);
 
                                 plugin.getConsole().sendMessage(ChatColor.GRAY + String.format(
                                         "> crafting depends on '%s'",
@@ -346,10 +342,11 @@ public class Config {
 
             if (brewingSection != null) {
                 String ingredientString = brewingSection.getString("ingredient", "");
+                assert ingredientString != null;
                 String[] split = ingredientString.split("/");
 
                 // Handle custom item ingredient
-                if (split.length == 2 && split[0].equals("custom")) {
+                if (split.length >= 2 && split[0].equals("custom")) {
                     CustomItem customIngredient = CustomItem.getItem(split[1]);
 
                     // Check if custom item exists
@@ -385,7 +382,7 @@ public class Config {
                         ItemStack base = null;
 
                         // Handle custom item ingredient
-                        if (baseSplit.length == 2 && baseSplit[0].equals("custom")) {
+                        if (baseSplit.length >= 2 && baseSplit[0].equals("custom")) {
                             CustomItem customBase = CustomItem.getItem(baseSplit[1]);
 
                             // Check if custom item exists
@@ -552,25 +549,73 @@ public class Config {
         config.set(path + ".recipe.crafting.pattern", item.getCraftingPattern());
 
         // Write basic materials first, and then update them to any custom values
-        Map<Character, ItemStack> ingredientMap =  item.getCraftingRecipe().getIngredientMap();
+        if (item.getCraftingRecipe() != null) {
+            Map<Character, ItemStack> ingredientMap = item.getCraftingRecipe().getIngredientMap();
 
-        for (char placeholder : ingredientMap.keySet()) {
-            config.set(path + ".recipe.crafting.materials." + placeholder, ingredientMap.get(placeholder).getType().toString());
-        }
+            for (char placeholder : ingredientMap.keySet()) {
+                config.set(path + ".recipe.crafting.materials." + placeholder, ingredientMap.get(placeholder).getType().toString());
+            }
 
-        if (item.hasCustomIngredients()) {
-            // Update to any custom values
-            Map<Character, String> customIngredientMap = item.getCustomIngredients();
+            if (item.hasCustomIngredients()) {
+                // Update to any custom values
+                Map<Character, String> customIngredientMap = item.getCustomIngredients();
 
-            for (char placeholder : customIngredientMap.keySet()) {
-                config.set(path + ".recipe.crafting.materials." + placeholder, "custom/" + ingredientMap.get(placeholder).getType().toString());
+                for (char placeholder : customIngredientMap.keySet()) {
+                    config.set(path + ".recipe.crafting.materials." + placeholder, "custom/" + ingredientMap.get(placeholder).getType().toString());
+                }
             }
         }
 
         // Save furnace recipe
-        config.set(path + ".recipe.furnace.input", item.getFurnaceRecipe().getInput().getType().toString());
-        config.set(path + ".recipe.furnace.exp", item.getFurnaceRecipe().getExperience());
-        config.set(path + ".recipe.furnace.cookTime", item.getFurnaceRecipe().getCookingTime());
+        if (item.getFurnaceRecipe() != null) {
+            config.set(path + ".recipe.furnace.input", item.getFurnaceRecipe().getInput().getType().toString());
+            config.set(path + ".recipe.furnace.exp", item.getFurnaceRecipe().getExperience());
+            config.set(path + ".recipe.furnace.cookTime", item.getFurnaceRecipe().getCookingTime());
+        }
+
+        // Save brewer recipe
+        if (item.getBrewingIngredient() != null) {
+            CustomItem customIngredient = CustomItem.getItemByTag(item.getBrewingIngredient());
+
+            String ingredientName;
+
+            // Check if this ingredient is a custom item
+            if (customIngredient != null) {
+                ingredientName = "custom/" + customIngredient.getName();
+            }
+
+            // Otherwise, treat it as a standard material
+            else {
+                ingredientName = item.getBrewingIngredient().getType().toString();
+            }
+
+            // Save ingredient
+            config.set(path + ".recipe.brewing.ingredient", ingredientName);
+
+            List<String> bases = new ArrayList<>();
+
+            for (ItemStack base : item.getBrewingBases()) {
+                CustomItem customBase = CustomItem.getItemByTag(base);
+
+                String baseName;
+
+                // Check if this base is a custom item
+                if (customBase != null) {
+                    baseName = "custom/" + customBase.getName();
+                }
+
+                // Otherwise, treat it as a standard material
+                else {
+                    baseName = base.getType().toString();
+                }
+
+                // Add to base list
+                bases.add(baseName);
+            }
+
+            // Save bases
+            config.set(path + ".recipe.brewing.bases", bases);
+        }
 
         // Save mob drops
         HashMap<EntityType, ItemValuePair> mobDrops = item.getMobDrops();
