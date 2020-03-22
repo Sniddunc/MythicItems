@@ -27,6 +27,12 @@ import java.util.Map;
 
 public class Config {
     public static void init() {
+        /**
+         * TODO: Refactor this really ugly spaghetti code.
+         * It started off fine, but as features are added it gets messier and messier...
+         * Ideally we'd have a config parser class which can handle all of this in a more organized manner.
+         */
+
         MythicItems plugin = MythicItems.getInstance();
         FileConfiguration config = MythicItems.getInstance().getConfig();
 
@@ -203,8 +209,6 @@ public class Config {
                 b = Integer.parseInt(split[2]);
 
                 item.setPotionColor(Color.fromRGB(r, g, b));
-
-                plugin.getConsole().sendMessage("Potion color: " + r + "," + b + "," + g);
             }
 
             ///////////////////////////////
@@ -258,7 +262,7 @@ public class Config {
                                 plugin.getConsole().sendMessage(customIngredient.getItemTag() + " is the tag for " + itemName);
 
                                 plugin.getConsole().sendMessage(ChatColor.GRAY + String.format(
-                                        "> depends on '%s'",
+                                        "> crafting depends on '%s'",
                                         split[1]
                                 ));
 
@@ -342,47 +346,141 @@ public class Config {
 
             if (brewingSection != null) {
                 String ingredientString = brewingSection.getString("ingredient", "");
+                String[] split = ingredientString.split("/");
 
-                Material ingredientMaterial = Material.getMaterial(ingredientString);
+                // Handle custom item ingredient
+                if (split.length == 2 && split[0].equals("custom")) {
+                    CustomItem customIngredient = CustomItem.getItem(split[1]);
 
-                if (ingredientMaterial != null) {
-                    ItemStack ingredient = new ItemStack(ingredientMaterial);
-                    item.setBrewingIngredient(ingredient);
+                    // Check if custom item exists
+                    if (customIngredient == null) {
+                        plugin.getConsole().sendMessage(ChatColor.RED + String.format(
+                                "Custom item '%s' provided as the ingredient in the brewing recipe for item '%s' is invalid",
+                                split[1],
+                                itemName
+                        ));
+
+                        plugin.getConsole().sendMessage(ChatColor.RED + String.format(
+                                "Make sure '%s' is loaded before item '%s'",
+                                split[1],
+                                itemName
+                        ));
+
+                        continue;
+                    }
+
+                    item.setBrewingIngredient(customIngredient.build());
+
+                    plugin.getConsole().sendMessage(ChatColor.GRAY + String.format(
+                            "> brewing (ingredient) depends on '%s'",
+                            split[1]
+                    ));
 
                     List<String> bases = brewingSection.getStringList("bases");
 
                     for (int i = 0; i < 3 && i < bases.size(); i++) {
                         String baseString = bases.get(i);
+                        String[] baseSplit = baseString.split("/");
 
-                        Material baseMaterial = Material.getMaterial(baseString);
+                        ItemStack base = null;
 
-                        if (baseMaterial == null) {
-                            plugin.getConsole().sendMessage(ChatColor.RED + String.format(
-                                    "Material provided '%s' as base %s for item '%s' is invalid",
-                                    ingredientString,
-                                    i,
-                                    itemName
+                        // Handle custom item ingredient
+                        if (baseSplit.length == 2 && baseSplit[0].equals("custom")) {
+                            CustomItem customBase = CustomItem.getItem(baseSplit[1]);
+
+                            // Check if custom item exists
+                            if (customBase == null) {
+                                plugin.getConsole().sendMessage(ChatColor.RED + String.format(
+                                        "Custom item '%s' provided as a base in the brewing recipe for item '%s' is invalid",
+                                        baseSplit[1],
+                                        itemName
+                                ));
+
+                                plugin.getConsole().sendMessage(ChatColor.RED + String.format(
+                                        "Make sure '%s' is loaded before item '%s'",
+                                        baseSplit[1],
+                                        itemName
+                                ));
+
+                                continue;
+                            }
+
+                            base = customBase.build();
+
+                            plugin.getConsole().sendMessage(ChatColor.GRAY + String.format(
+                                    "> brewing (base) depends on '%s'",
+                                    baseSplit[1]
                             ));
-
-                            continue;
                         }
 
-                        ItemStack base = new ItemStack(baseMaterial);
-                        item.addBrewingBase(base);
+                        // Otherwise, handle material base
+                        else {
+                            Material baseMaterial = Material.getMaterial(baseString);
+
+                            if (baseMaterial == null) {
+                                plugin.getConsole().sendMessage(ChatColor.RED + String.format(
+                                        "Material provided '%s' as base %s for item '%s' is invalid",
+                                        ingredientString,
+                                        i,
+                                        itemName
+                                ));
+
+                                continue;
+                            }
+
+                            base = new ItemStack(baseMaterial);
+                        }
+
+                        if (base != null) {
+                            item.addBrewingBase(base);
+                        }
+                    }
+                }
+
+                // Otherwise, handle material ingredient
+                else {
+                    Material ingredientMaterial = Material.getMaterial(ingredientString);
+
+                    if (ingredientMaterial != null) {
+                        ItemStack ingredient = new ItemStack(ingredientMaterial);
+                        item.setBrewingIngredient(ingredient);
+
+                        List<String> bases = brewingSection.getStringList("bases");
+
+                        for (int i = 0; i < 3 && i < bases.size(); i++) {
+                            String baseString = bases.get(i);
+
+                            Material baseMaterial = Material.getMaterial(baseString);
+
+                            if (baseMaterial == null) {
+                                plugin.getConsole().sendMessage(ChatColor.RED + String.format(
+                                        "Material provided '%s' as base %s for item '%s' is invalid",
+                                        ingredientString,
+                                        i,
+                                        itemName
+                                ));
+
+                                continue;
+                            }
+
+                            ItemStack base = new ItemStack(baseMaterial);
+                            item.addBrewingBase(base);
+                        }
                     }
 
-                    new BrewingRecipe(ingredient, item.getBrewingBases(), (inventory, resItem, resIngredient) -> {
-                        inventory.setItem(1, item.build());
-                    });
+                    else {
+                        plugin.getConsole().sendMessage(ChatColor.RED + String.format(
+                                "Material provided '%s' as the brewing ingredient for item '%s' is invalid",
+                                ingredientString,
+                                itemName
+                        ));
+                    }
                 }
 
-                else {
-                    plugin.getConsole().sendMessage(ChatColor.RED + String.format(
-                            "Material provided '%s' as the brewing ingredient for item '%s' is invalid",
-                            ingredientString,
-                            itemName
-                    ));
-                }
+                // Register brewing recipe
+                new BrewingRecipe(item.getBrewingIngredient(), item.getBrewingBases(), (inventory, resItem, resIngredient) -> {
+                    inventory.setItem(1, item.build());
+                });
             }
 
             // Register item to list
