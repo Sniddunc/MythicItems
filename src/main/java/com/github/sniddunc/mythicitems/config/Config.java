@@ -1,6 +1,7 @@
 package com.github.sniddunc.mythicitems.config;
 
 import com.github.sniddunc.mythicitems.MythicItems;
+import com.github.sniddunc.mythicitems.objects.BrewingRecipe;
 import com.github.sniddunc.mythicitems.objects.CustomItem;
 import com.github.sniddunc.mythicitems.objects.ItemValuePair;
 import org.bukkit.*;
@@ -337,6 +338,52 @@ public class Config {
             ///////////////////////////////
             // BREWING RECIPE PARSING
             // (should be done last)
+            ConfigurationSection brewingSection = config.getConfigurationSection(path + "recipe.brewing");
+
+            if (brewingSection != null) {
+                String ingredientString = brewingSection.getString("ingredient", "");
+
+                Material ingredientMaterial = Material.getMaterial(ingredientString);
+
+                if (ingredientMaterial != null) {
+                    ItemStack ingredient = new ItemStack(ingredientMaterial);
+                    item.setBrewingIngredient(ingredient);
+
+                    List<String> bases = brewingSection.getStringList("bases");
+
+                    for (int i = 0; i < 3 && i < bases.size(); i++) {
+                        String baseString = bases.get(i);
+
+                        Material baseMaterial = Material.getMaterial(baseString);
+
+                        if (baseMaterial == null) {
+                            plugin.getConsole().sendMessage(ChatColor.RED + String.format(
+                                    "Material provided '%s' as base %s for item '%s' is invalid",
+                                    ingredientString,
+                                    i,
+                                    itemName
+                            ));
+
+                            continue;
+                        }
+
+                        ItemStack base = new ItemStack(baseMaterial);
+                        item.addBrewingBase(base);
+                    }
+
+                    new BrewingRecipe(ingredient, item.getBrewingBases(), (inventory, resItem, resIngredient) -> {
+                        inventory.setItem(1, item.build());
+                    });
+                }
+
+                else {
+                    plugin.getConsole().sendMessage(ChatColor.RED + String.format(
+                            "Material provided '%s' as the brewing ingredient for item '%s' is invalid",
+                            ingredientString,
+                            itemName
+                    ));
+                }
+            }
 
             // Register item to list
             CustomItem.registerNewItem(item);

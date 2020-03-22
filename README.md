@@ -10,14 +10,13 @@ Current features:
 * Enchantments
 * Potion support
 * Glow effect without enchantments
-* Custom crafting recipes that can use other custom items
-* Custom furnace recipes with exp and cook time control
+* Customizable crafting table, furnace and brewing stand recipes with custom item support!
 * Entity drops
 * Block drops
 * Other modifiable attributes
 
 Planned Features:
-* Brewing Stand Recipes
+* Custom items for brewing recipes
 * Easier API
 * Documentation
 

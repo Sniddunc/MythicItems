@@ -33,9 +33,12 @@ public class CustomItem {
     private ShapedRecipe craftingRecipe;
     private List<String> craftingPattern;
     private HashMap<Character, String> customIngredients;
-    private boolean hasCustomIngredients;
+    private boolean hasCustomCraftingIngredients;
 
     private FurnaceRecipe furnaceRecipe;
+
+    private ItemStack brewingIngredient;
+    private List<ItemStack> brewingBases;
 
     private HashMap<EntityType, ItemValuePair> mobDropMap;
     private boolean isDroppedByMobs;
@@ -64,8 +67,10 @@ public class CustomItem {
         craftingRecipe = null;
         craftingPattern = new ArrayList<>();
         customIngredients = new HashMap<>();
-        hasCustomIngredients = false;
+        hasCustomCraftingIngredients = false;
         furnaceRecipe = null;
+        brewingIngredient = null;
+        brewingBases = new ArrayList<>();
         mobDropMap = new HashMap<>();
         isDroppedByMobs = false;
         blockDropMap = new HashMap<>();
@@ -149,7 +154,7 @@ public class CustomItem {
 
     public void addCustomCraftingIngredient(char placeholder, String itemTag) {
         customIngredients.put(placeholder, itemTag);
-        hasCustomIngredients = true;
+        hasCustomCraftingIngredients = true;
     }
 
     public HashMap<Character, String> getCustomIngredients() {
@@ -157,7 +162,7 @@ public class CustomItem {
     }
 
     public boolean hasCustomIngredients() {
-        return hasCustomIngredients;
+        return hasCustomCraftingIngredients;
     }
 
     public FurnaceRecipe getFurnaceRecipe() {
@@ -166,6 +171,22 @@ public class CustomItem {
 
     public void setFurnaceRecipe(FurnaceRecipe furnaceRecipe) {
         this.furnaceRecipe = furnaceRecipe;
+    }
+
+    public ItemStack getBrewingIngredient() {
+        return brewingIngredient;
+    }
+
+    public List<ItemStack> getBrewingBases() {
+        return brewingBases;
+    }
+
+    public void addBrewingBase(ItemStack base) {
+        brewingBases.add(base);
+    }
+
+    public void setBrewingIngredient(ItemStack brewingIngredient) {
+        this.brewingIngredient = brewingIngredient;
     }
 
     public void addMobDrop(EntityType type, int chance, int amount) {

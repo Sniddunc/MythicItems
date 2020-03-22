@@ -16,22 +16,21 @@ import java.util.List;
 /**
  * Based on the code provided by NacOJerk on
  * https://www.spigotmc.org/threads/how-to-make-custom-potions-and-brewing-recipes.211002/
+ * Thank you :)
  */
 public class BrewingRecipe {
     private static List<BrewingRecipe> recipes = new ArrayList<>();
 
     private ItemStack ingredient;
+    private List<ItemStack> bases;
     private BrewAction action;
 
-    public BrewingRecipe(ItemStack ingredient, BrewAction action) {
+    public BrewingRecipe(ItemStack ingredient, List<ItemStack> bases, BrewAction action) {
         this.ingredient = ingredient;
+        this.bases = bases;
         this.action = action;
 
         recipes.add(this);
-    }
-
-    public BrewingRecipe(Material ingredient, BrewAction action) {
-        this(new ItemStack(ingredient), action);
     }
 
     public ItemStack getIngredient() {
@@ -42,36 +41,8 @@ public class BrewingRecipe {
         return action;
     }
 
-    public static BrewingRecipe getRecipe(BrewerInventory inventory) {
-        boolean notAllAir = false;
-
-        for (int i = 0 ; i < 3 && !notAllAir ; i++) {
-            if (inventory.getItem(i) == null) {
-                continue;
-            }
-
-            if (inventory.getItem(i).getType() == Material.AIR) {
-                continue;
-            }
-
-            notAllAir = true;
-        }
-
-        if (!notAllAir) {
-            return null;
-        }
-
-        for (BrewingRecipe recipe : recipes) {
-            if (inventory.getIngredient().getType() == recipe.getIngredient().getType()) {
-                return recipe;
-            }
-
-            if (inventory.getIngredient().isSimilar(recipe.getIngredient())) {
-                return recipe;
-            }
-        }
-
-        return null;
+    public List<ItemStack> getBases() {
+        return bases;
     }
 
     public void startBrewing(BrewerInventory inventory) {
@@ -99,13 +70,15 @@ public class BrewingRecipe {
 
         @Override
         public void run() {
-            if (brewTime == 0) {
+            if (brewTime <= 0) {
                 inventory.setIngredient(new ItemStack(Material.AIR));
 
                 for (int i = 0; i < 3; i++) {
                     if (inventory.getItem(i) == null || inventory.getItem(i).getType() == Material.AIR) {
                         continue;
                     }
+
+                    emptyBrewingBases(inventory);
 
                     recipe.getBrewAction().brew(inventory, inventory.getItem(i), ingredient);
                 }
@@ -122,6 +95,79 @@ public class BrewingRecipe {
             brewTime--;
             stand.setBrewingTime(brewTime);
             stand.update(true);
+        }
+    }
+
+    // STATIC
+    public static BrewingRecipe getRecipe(BrewerInventory inventory) {
+        boolean empty = true;
+
+        for (int i = 0; i < 3; i++) {
+            ItemStack item = inventory.getItem(i);
+
+            if (item == null || item.getType() == Material.AIR) {
+                continue;
+            }
+
+            empty = false;
+            break;
+        }
+
+        if (empty) {
+            return null;
+        }
+
+        for (BrewingRecipe recipe : recipes) {
+            if (inventory.getIngredient().isSimilar(recipe.getIngredient()) && basesMatch(inventory, recipe.getBases())) {
+                return recipe;
+            }
+        }
+
+//        for (BrewingRecipe recipe : recipes) {
+//            if (inventory.getIngredient().getType() == recipe.getIngredient().getType()) {
+//                return recipe;
+//            }
+//
+//            if (inventory.getIngredient().isSimilar(recipe.getIngredient())) {
+//                return recipe;
+//            }
+//        }
+
+        return null;
+    }
+
+    public static boolean basesMatch(BrewerInventory inventory, List<ItemStack> bases) {
+        // Keep track of slots with valid bases so we don't risk treating 1 base value as 3, for example.
+        List<Integer> slotsUsed = new ArrayList<>();
+
+        for (ItemStack base : bases) {
+            boolean match = false;
+
+            for (int slotId = 0; slotId < 3; slotId++) {
+                if (slotsUsed.contains(slotId)) {
+                    continue;
+                }
+
+                if (base.isSimilar(inventory.getItem(slotId))) {
+                    // Mark this slot as used, set match to true and break out of the loop since we found a match
+                    // to the current base being checked.
+                    slotsUsed.add(slotId);
+                    match = true;
+                    break;
+                }
+            }
+
+            if (!match) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public static void emptyBrewingBases(BrewerInventory inventory) {
+        for (int slotId = 0; slotId < 3; slotId++) {
+            inventory.setItem(slotId, new ItemStack(Material.AIR));
         }
     }
 }

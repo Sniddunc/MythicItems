@@ -58,19 +58,6 @@ public final class MythicItems extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new MobListeners(), this);
         getServer().getPluginManager().registerEvents(new BlockListeners(), this);
         getServer().getPluginManager().registerEvents(new CraftListeners(), this);
-
-        new BrewingRecipe(new ItemStack(Material.DIRT), (inventory, item, ingredient) -> {
-            inventory.setItem(1, new ItemStack(Material.DIAMOND));
-        });
-
-//        new BrewingRecipe(Material.WHITE_WOOL, (inventory, item, ingredient) -> {//Some lambda magic
-//            if (!item.getType().toString().contains("LEATER"))
-//                return;
-//            LeatherArmorMeta armorMeta = (LeatherArmorMeta) item.getItemMeta();
-//            Color color = Color.RED;
-//            armorMeta.setColor(color);
-//            item.setItemMeta(armorMeta);
-//        });
     }
 
     public void registerGlowEffect() {
