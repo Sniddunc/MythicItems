@@ -1,6 +1,7 @@
 package com.github.sniddunc.mythicitems;
 
 import com.github.sniddunc.mythicitems.commands.MythicItemsCommand;
+import com.github.sniddunc.mythicitems.commands.MythicItemsCommandCompleter;
 import com.github.sniddunc.mythicitems.config.Config;
 import com.github.sniddunc.mythicitems.enchantments.GlowEffect;
 import com.github.sniddunc.mythicitems.exceptions.InvalidNamespaceException;
@@ -53,6 +54,7 @@ public final class MythicItems extends JavaPlugin {
 
         // Command executor setup
         getCommand("mythicitems").setExecutor(new MythicItemsCommand());
+        getCommand("mythicitems").setTabCompleter(new MythicItemsCommandCompleter());
 
         // Listener setup
         getServer().getPluginManager().registerEvents(new MobListeners(), this);

@@ -1,5 +1,6 @@
 package com.github.sniddunc.mythicitems.objects;
 
+import com.github.sniddunc.mythicitems.ItemAPI;
 import com.github.sniddunc.mythicitems.MythicItems;
 import com.github.sniddunc.mythicitems.interfaces.BrewAction;
 import org.bukkit.Bukkit;
@@ -117,21 +118,22 @@ public class BrewingRecipe {
             return null;
         }
 
+//        int inc = 0;
         for (BrewingRecipe recipe : recipes) {
+//            inc++;
+            if (inventory.getIngredient().getType() == Material.POTION) {
+//                Bukkit.broadcastMessage(String.format("[%s] Comparing potions", inc));
+                if (ItemAPI.Utils.potionsAreEqual(inventory.getIngredient(), recipe.getIngredient()) && basesMatch(inventory, recipe.getBases())) {
+                    return recipe;
+                }
+
+                continue;
+            }
+
             if (inventory.getIngredient().isSimilar(recipe.getIngredient()) && basesMatch(inventory, recipe.getBases())) {
                 return recipe;
             }
         }
-
-//        for (BrewingRecipe recipe : recipes) {
-//            if (inventory.getIngredient().getType() == recipe.getIngredient().getType()) {
-//                return recipe;
-//            }
-//
-//            if (inventory.getIngredient().isSimilar(recipe.getIngredient())) {
-//                return recipe;
-//            }
-//        }
 
         return null;
     }
