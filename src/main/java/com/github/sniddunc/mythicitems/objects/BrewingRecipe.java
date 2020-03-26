@@ -15,7 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Based on the code provided by NacOJerk on
+ * Based on the code provided by NacOJerk at
  * https://www.spigotmc.org/threads/how-to-make-custom-potions-and-brewing-recipes.211002/
  * Thank you :)
  */
@@ -30,8 +30,6 @@ public class BrewingRecipe {
         this.ingredient = ingredient;
         this.bases = bases;
         this.action = action;
-
-        recipes.add(this);
     }
 
     public ItemStack getIngredient() {
@@ -50,7 +48,15 @@ public class BrewingRecipe {
         new BrewClock(this, inventory);
     }
 
-    private class BrewClock extends BukkitRunnable {
+    /**
+     * registerRecipe should only be called from within MythicItems itself. If you are developing a plugin using
+     * MythicItem's API, the API will take care of calling this function for you.
+     */
+    public void registerRecipe() {
+        recipes.add(this);
+    }
+
+    private static class BrewClock extends BukkitRunnable {
         private BrewerInventory inventory;
         private BrewingRecipe recipe;
         private ItemStack ingredient;
@@ -81,7 +87,7 @@ public class BrewingRecipe {
 
                     emptyBrewingBases(inventory);
 
-                    recipe.getBrewAction().brew(inventory, inventory.getItem(i), ingredient);
+                    recipe.getBrewAction().brew(inventory);
                 }
 
                 cancel();

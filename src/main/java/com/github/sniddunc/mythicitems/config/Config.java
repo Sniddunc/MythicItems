@@ -2,18 +2,16 @@ package com.github.sniddunc.mythicitems.config;
 
 import com.github.sniddunc.mythicitems.MythicItems;
 import com.github.sniddunc.mythicitems.objects.BrewingRecipe;
+import com.github.sniddunc.mythicitems.objects.CraftingRecipe;
 import com.github.sniddunc.mythicitems.objects.CustomItem;
-import com.github.sniddunc.mythicitems.objects.ItemValuePair;
+import com.github.sniddunc.mythicitems.objects.SourceChancePair;
 import org.bukkit.*;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentWrapper;
 import org.bukkit.entity.EntityType;
-import org.bukkit.inventory.FurnaceRecipe;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.RecipeChoice;
-import org.bukkit.inventory.ShapedRecipe;
+import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionEffect;
@@ -22,7 +20,6 @@ import org.bukkit.potion.PotionType;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -222,10 +219,10 @@ public class Config {
 
                 if (pattern.size() == 3) {
                     NamespacedKey recipeKey = new NamespacedKey(plugin, itemName + "-crafting");
-                    ShapedRecipe recipe = new ShapedRecipe(recipeKey, item.build());
+                    CraftingRecipe recipe = new CraftingRecipe(recipeKey, item.build());
 
                     // Set crafting pattern
-                    recipe.shape(pattern.toArray(new String[0]));
+                    recipe.setShape(pattern.toArray(new String[0]));
 
                     ConfigurationSection materialSection = config.getConfigurationSection(path + "recipe.crafting.materials");
 
@@ -259,15 +256,13 @@ public class Config {
                                     continue;
                                 }
 
-                                item.addCustomCraftingIngredient(placeholder.charAt(0), customIngredient.getItemTag());
+                                Material placeholderMaterial = customIngredient.getMaterial();
+                                recipe.setCustomIngredient(placeholder.charAt(0), customIngredient.getItemTag(), placeholderMaterial);
 
                                 plugin.getConsole().sendMessage(ChatColor.GRAY + String.format(
                                         "> crafting depends on '%s'",
                                         customItemName
                                 ));
-
-                                Material placeholderMaterial = customIngredient.getMaterial();
-                                recipe.setIngredient(placeholder.charAt(0), placeholderMaterial);
                             }
 
                             else {
@@ -288,9 +283,8 @@ public class Config {
                         }
 
                         // Everything's valid! Register recipe on server
-                        item.setCraftingPattern(pattern);
                         item.setCraftingRecipe(recipe);
-                        plugin.getServer().addRecipe(recipe);
+                        plugin.getServer().addRecipe(recipe.getRecipe());
                     }
 
                     else {
@@ -349,6 +343,9 @@ public class Config {
                 assert ingredientString != null;
                 String[] ingredientSplit = ingredientString.split("/");
 
+                ItemStack brewingIngredient = null;
+                List<ItemStack> brewingBases = new ArrayList<>();
+
                 // Handle custom item ingredient
                 if (ingredientSplit.length >= 2 && ingredientSplit[0].equals("custom")) {
                     String customItemName = ingredientString.substring(ingredientSplit[0].length() + 1);
@@ -371,7 +368,8 @@ public class Config {
                         continue;
                     }
 
-                    item.setBrewingIngredient(customIngredient.build());
+                    brewingIngredient = customIngredient.build();
+
 
                     plugin.getConsole().sendMessage(ChatColor.GRAY + String.format(
                             "> brewing (ingredient) depends on '%s'",
@@ -435,7 +433,7 @@ public class Config {
                         }
 
                         if (base != null) {
-                            item.addBrewingBase(base);
+                            brewingBases.add(base);
                         }
                     }
                 }
@@ -477,7 +475,7 @@ public class Config {
                             ingredient.setItemMeta(potionMeta);
                         }
 
-                        item.setBrewingIngredient(ingredient);
+                        brewingIngredient = ingredient;
 
                         List<String> bases = brewingSection.getStringList("bases");
 
@@ -535,7 +533,7 @@ public class Config {
                                 base = new ItemStack(baseMaterial);
                             }
 
-                            item.addBrewingBase(base);
+                            brewingBases.add(base);
                         }
                     }
 
@@ -549,9 +547,9 @@ public class Config {
                 }
 
                 // Register brewing recipe
-                new BrewingRecipe(item.getBrewingIngredient(), item.getBrewingBases(), (inventory, resItem, resIngredient) -> {
+                new BrewingRecipe(brewingIngredient, brewingBases, (inventory) -> {
                     inventory.setItem(1, item.build());
-                });
+                }).registerRecipe();
             }
 
             // Register item to list
@@ -603,21 +601,21 @@ public class Config {
         }
 
         // Save crafting recipe
-        if (item.getCraftingPattern().size() > 0) {
-            config.set(path + ".recipe.crafting.pattern", item.getCraftingPattern());
+        if (item.getCraftingRecipe() != null && item.getCraftingRecipe().getShape().length > 0) {
+            config.set(path + ".recipe.crafting.pattern", item.getCraftingRecipe().getShape());
         }
 
         // Write basic materials first, and then update them to any custom values
         if (item.getCraftingRecipe() != null) {
-            Map<Character, ItemStack> ingredientMap = item.getCraftingRecipe().getIngredientMap();
+            Map<Character, ItemStack> ingredientMap = item.getCraftingRecipe().getRecipe().getIngredientMap();
 
             for (char placeholder : ingredientMap.keySet()) {
                 config.set(path + ".recipe.crafting.materials." + placeholder, ingredientMap.get(placeholder).getType().toString());
             }
 
-            if (item.hasCustomIngredients()) {
+            if (item.getCraftingRecipe().hasCustomIngredients()) {
                 // Update to any custom values
-                Map<Character, String> customIngredientMap = item.getCustomIngredients();
+                Map<Character, String> customIngredientMap = item.getCraftingRecipe().getCustomIngredients();
 
                 for (char placeholder : customIngredientMap.keySet()) {
                     config.set(path + ".recipe.crafting.materials." + placeholder, "custom/" + ingredientMap.get(placeholder).getType().toString());
@@ -626,15 +624,15 @@ public class Config {
         }
 
         // Save furnace recipe
-        if (item.getFurnaceRecipe() != null) {
+        if (item.getFurnaceRecipe() != null && item.getFurnaceRecipe() != null) {
             config.set(path + ".recipe.furnace.input", item.getFurnaceRecipe().getInput().getType().toString());
             config.set(path + ".recipe.furnace.exp", item.getFurnaceRecipe().getExperience());
             config.set(path + ".recipe.furnace.cookTime", item.getFurnaceRecipe().getCookingTime());
         }
 
         // Save brewer recipe
-        if (item.getBrewingIngredient() != null) {
-            CustomItem customIngredient = CustomItem.getItemByTag(item.getBrewingIngredient());
+        if (item.getBrewingRecipe() != null && item.getBrewingRecipe().getIngredient() != null) {
+            CustomItem customIngredient = CustomItem.getItemByTag(item.getBrewingRecipe().getIngredient());
 
             String ingredientName;
 
@@ -645,11 +643,11 @@ public class Config {
 
             // Otherwise, treat it as a standard material
             else {
-                ingredientName = item.getBrewingIngredient().getType().toString();
+                ingredientName = item.getBrewingRecipe().getIngredient().getType().toString();
 
                 // Account for potions which have special types
                 if (ingredientName.equals("POTION")) {
-                    PotionMeta potionMeta = (PotionMeta) item.getBrewingIngredient().getItemMeta();
+                    PotionMeta potionMeta = (PotionMeta) item.getBrewingRecipe().getIngredient().getItemMeta();
                     ingredientName += ":" + potionMeta.getBasePotionData().getType().toString();
                 }
             }
@@ -659,7 +657,7 @@ public class Config {
 
             List<String> bases = new ArrayList<>();
 
-            for (ItemStack base : item.getBrewingBases()) {
+            for (ItemStack base : item.getBrewingRecipe().getBases()) {
                 CustomItem customBase = CustomItem.getItemByTag(base);
 
                 String baseName;
@@ -683,7 +681,7 @@ public class Config {
         }
 
         // Save mob drops
-        HashMap<EntityType, ItemValuePair> mobDrops = item.getMobDrops();
+        HashMap<EntityType, SourceChancePair> mobDrops = item.getMobDrops();
 
         for (EntityType entity : mobDrops.keySet()) {
             config.set(path + ".drops.mobs." + entity.toString() + ".chance", mobDrops.get(entity).getChance());
@@ -691,7 +689,7 @@ public class Config {
         }
 
         // Save block drops
-        HashMap<Material, ItemValuePair> blockDrops = item.getBlockDrops();
+        HashMap<Material, SourceChancePair> blockDrops = item.getBlockDrops();
 
         for (Material material : blockDrops.keySet()) {
             config.set(path + ".drops.blocks." + material.toString() + ".chance", blockDrops.get(material).getChance());

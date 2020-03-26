@@ -4,31 +4,35 @@ import com.github.sniddunc.mythicitems.commands.MythicItemsCommandCompleter;
 import com.github.sniddunc.mythicitems.config.Config;
 import com.github.sniddunc.mythicitems.exceptions.InvalidNamespaceException;
 import com.github.sniddunc.mythicitems.objects.CustomItem;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
-import org.bukkit.inventory.FurnaceRecipe;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.RecipeChoice;
-import org.bukkit.inventory.ShapedRecipe;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.plugin.Plugin;
 
-import java.util.Arrays;
 import java.util.List;
 
 public class ItemAPI {
 
     private String namespace;
 
-    public ItemAPI(final String namespace) throws InvalidNamespaceException {
+    private Plugin plugin;
+
+    public ItemAPI(final String namespace, Plugin plugin) throws InvalidNamespaceException {
         if (!namespace.matches("^[a-z0-9_\"]+$")) {
             throw new InvalidNamespaceException("Namespace must only contain lowercase characters and underscores");
         }
 
         this.namespace = namespace;
+        this.plugin = plugin;
+    }
+
+    public String getNamespace() {
+        return namespace;
+    }
+
+    public Plugin getPlugin() {
+        return plugin;
     }
 
     /**

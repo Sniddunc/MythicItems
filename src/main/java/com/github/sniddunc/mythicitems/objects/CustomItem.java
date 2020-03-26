@@ -10,7 +10,6 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.FurnaceRecipe;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionEffect;
@@ -31,20 +30,16 @@ public class CustomItem {
 
     private List<PotionEffect> potionEffects;
 
-    private ShapedRecipe craftingRecipe;
-    private List<String> craftingPattern;
-    private HashMap<Character, String> customIngredients;
-    private boolean hasCustomCraftingIngredients;
+    private CraftingRecipe craftingRecipe;
 
     private FurnaceRecipe furnaceRecipe;
 
-    private ItemStack brewingIngredient;
-    private List<ItemStack> brewingBases;
+    private BrewingRecipe brewingRecipe;
 
-    private HashMap<EntityType, ItemValuePair> mobDropMap;
+    private HashMap<EntityType, SourceChancePair> mobDropMap;
     private boolean isDroppedByMobs;
 
-    private HashMap<Material, ItemValuePair> blockDropMap;
+    private HashMap<Material, SourceChancePair> blockDropMap;
     private boolean isDroppedByBlocks;
 
     private boolean canBeRenamed;
@@ -66,12 +61,8 @@ public class CustomItem {
         enchantments = new HashMap<>();
         potionEffects = new ArrayList<>();
         craftingRecipe = null;
-        craftingPattern = new ArrayList<>();
-        customIngredients = new HashMap<>();
-        hasCustomCraftingIngredients = false;
         furnaceRecipe = null;
-        brewingIngredient = null;
-        brewingBases = new ArrayList<>();
+        brewingRecipe = null;
         mobDropMap = new HashMap<>();
         isDroppedByMobs = false;
         blockDropMap = new HashMap<>();
@@ -137,33 +128,12 @@ public class CustomItem {
         return potionEffects;
     }
 
-    public ShapedRecipe getCraftingRecipe() {
+    public CraftingRecipe getCraftingRecipe() {
         return craftingRecipe;
     }
 
-    public void setCraftingRecipe(ShapedRecipe craftingRecipe) {
+    public void setCraftingRecipe(CraftingRecipe craftingRecipe) {
         this.craftingRecipe = craftingRecipe;
-    }
-
-    public List<String> getCraftingPattern() {
-        return craftingPattern;
-    }
-
-    public void setCraftingPattern(List<String> pattern) {
-        this.craftingPattern = pattern;
-    }
-
-    public void addCustomCraftingIngredient(char placeholder, String itemTag) {
-        customIngredients.put(placeholder, itemTag);
-        hasCustomCraftingIngredients = true;
-    }
-
-    public HashMap<Character, String> getCustomIngredients() {
-        return customIngredients;
-    }
-
-    public boolean hasCustomIngredients() {
-        return hasCustomCraftingIngredients;
     }
 
     public FurnaceRecipe getFurnaceRecipe() {
@@ -174,25 +144,17 @@ public class CustomItem {
         this.furnaceRecipe = furnaceRecipe;
     }
 
-    public ItemStack getBrewingIngredient() {
-        return brewingIngredient;
-    }
-
-    public List<ItemStack> getBrewingBases() {
-        return brewingBases;
-    }
-
-    public void addBrewingBase(ItemStack base) {
-        brewingBases.add(base);
-    }
-
-    public void setBrewingIngredient(ItemStack brewingIngredient) {
-        this.brewingIngredient = brewingIngredient;
+    public BrewingRecipe getBrewingRecipe() {
+        return brewingRecipe;
     }
 
     public void addMobDrop(EntityType type, int chance, int amount) {
-        mobDropMap.put(type, new ItemValuePair(chance, amount));
+        mobDropMap.put(type, new SourceChancePair(chance, amount));
         isDroppedByMobs = true;
+    }
+
+    public void setMobDrops(HashMap<EntityType, SourceChancePair> mobDrops) {
+        mobDropMap = mobDrops;
     }
 
     public boolean isDroppedByMobs() {
@@ -211,13 +173,17 @@ public class CustomItem {
         return mobDropMap.get(type).getAmount();
     }
 
-    public HashMap<EntityType, ItemValuePair> getMobDrops() {
+    public HashMap<EntityType, SourceChancePair> getMobDrops() {
         return mobDropMap;
     }
 
     public void addBlockDrop(Material type, int chance, int amount) {
-        blockDropMap.put(type, new ItemValuePair(chance, amount));
+        blockDropMap.put(type, new SourceChancePair(chance, amount));
         isDroppedByBlocks = true;
+    }
+
+    public void setBlockDrops(HashMap<Material, SourceChancePair> blockDrops) {
+        blockDropMap = blockDrops;
     }
 
     public boolean isDroppedByBlocks() {
@@ -236,7 +202,7 @@ public class CustomItem {
         return blockDropMap.get(type).getAmount();
     }
 
-    public HashMap<Material, ItemValuePair> getBlockDrops() {
+    public HashMap<Material, SourceChancePair> getBlockDrops() {
         return blockDropMap;
     }
 

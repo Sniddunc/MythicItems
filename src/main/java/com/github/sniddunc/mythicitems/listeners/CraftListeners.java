@@ -4,9 +4,7 @@ import com.github.sniddunc.mythicitems.MythicItems;
 import com.github.sniddunc.mythicitems.objects.BrewingRecipe;
 import com.github.sniddunc.mythicitems.objects.CustomItem;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.block.Furnace;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -14,10 +12,7 @@ import org.bukkit.event.inventory.*;
 import org.bukkit.inventory.BrewerInventory;
 import org.bukkit.inventory.ItemStack;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.HashMap;
-import java.util.List;
 
 public class CraftListeners implements Listener {
 
@@ -65,12 +60,12 @@ public class CraftListeners implements Listener {
 
         CustomItem result = CustomItem.getItemByTag(resultItem);
 
-        if (result == null || !result.hasCustomIngredients()) {
+        if (result == null || !result.getCraftingRecipe().hasCustomIngredients()) {
             return;
         }
 
-        List<String> pattern = result.getCraftingPattern();
-        HashMap<Character, String> customIngredients = result.getCustomIngredients();
+        String[] pattern = result.getCraftingRecipe().getShape();
+        HashMap<Character, String> customIngredients = result.getCraftingRecipe().getCustomIngredients();
 
         boolean isValid = true;
 

@@ -17,6 +17,7 @@ import org.bukkit.inventory.BrewerInventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -92,8 +93,8 @@ public final class MythicItems extends JavaPlugin {
         return console;
     }
 
-    public ItemAPI getItemAPI(String namespace) throws InvalidNamespaceException {
-        return new ItemAPI(namespace);
+    public ItemAPI getItemAPI(String namespace, Plugin plugin) throws InvalidNamespaceException {
+        return new ItemAPI(namespace, plugin);
     }
 
     public static MythicItems getInstance() {

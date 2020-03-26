@@ -1,11 +1,11 @@
 package com.github.sniddunc.mythicitems.objects;
 
-public class ItemValuePair {
+public class SourceChancePair {
 
     private int chance;
     private int amount;
 
-    public ItemValuePair(int chance, int amount) {
+    public SourceChancePair(int chance, int amount) {
         this.chance = chance;
         this.amount = amount;
     }
