@@ -2,10 +2,7 @@ package com.github.sniddunc.mythicitems.objects;
 
 import com.github.sniddunc.mythicitems.MythicItems;
 import com.github.sniddunc.mythicitems.enchantments.GlowEffect;
-import org.bukkit.ChatColor;
-import org.bukkit.Color;
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
+import org.bukkit.*;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.FurnaceRecipe;
@@ -242,6 +239,17 @@ public class CustomItem {
         return Base64.getEncoder().encodeToString(name.getBytes());
     }
 
+    public String getObfuscatedItemTag() {
+        String encoded = getItemTag();
+        StringBuilder output = new StringBuilder();
+
+        for (char c : encoded.toCharArray()) {
+            output.append(ChatColor.COLOR_CHAR).append(c);
+        }
+
+        return output.toString();
+    }
+
     public ItemStack build() {
         ItemStack item = new ItemStack(material, 1);
 
@@ -254,7 +262,7 @@ public class CustomItem {
         // We could show it in plain text, but obfuscating it will provide users a better experience instead of showing
         // 2 different versions of the name and making them guess which they should use (name & display name).
         List<String> tempLore = new ArrayList<>(lore);
-        tempLore.add(ChatColor.BLACK + getItemTag());
+        tempLore.add(getObfuscatedItemTag());
         meta.setLore(tempLore);
 
         // Apply enchantments
@@ -375,14 +383,6 @@ public class CustomItem {
             return null;
         }
 
-        // Extract what might be a tag from the last line of the lore
-        String tag = ChatColor.stripColor(lore.get(lore.size() - 1));
-//
-//        // Ensure there is no padding ==
-//        if (tag.substring(tag.length() - 2).equals("==")) {
-//            tag = tag.substring(0, tag.length() - 2);
-//        }
-
-        return tag;
+        return lore.get(lore.size() - 1);
     }
 }

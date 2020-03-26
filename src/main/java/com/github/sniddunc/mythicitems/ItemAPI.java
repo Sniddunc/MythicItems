@@ -4,6 +4,7 @@ import com.github.sniddunc.mythicitems.commands.MythicItemsCommandCompleter;
 import com.github.sniddunc.mythicitems.config.Config;
 import com.github.sniddunc.mythicitems.exceptions.InvalidNamespaceException;
 import com.github.sniddunc.mythicitems.objects.CustomItem;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -73,7 +74,7 @@ public class ItemAPI {
                 return false;
             }
 
-            return item1Tag.equals(item2.getItemTag());
+            return item1Tag.equals(item2.getObfuscatedItemTag());
         }
 
         public static CustomItem getItemByName(String namespace, String name) {
@@ -116,6 +117,10 @@ public class ItemAPI {
             }
 
             return true;
+        }
+
+        public static String getDeobfuscatedTag(String obfuscatedTag) {
+            return obfuscatedTag.replaceAll(String.valueOf(ChatColor.COLOR_CHAR), "");
         }
     }
 }
