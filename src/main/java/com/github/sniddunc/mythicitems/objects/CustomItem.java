@@ -1,5 +1,6 @@
 package com.github.sniddunc.mythicitems.objects;
 
+import com.github.sniddunc.mythicitems.ItemAPI;
 import com.github.sniddunc.mythicitems.MythicItems;
 import com.github.sniddunc.mythicitems.enchantments.GlowEffect;
 import org.bukkit.*;
@@ -355,7 +356,7 @@ public class CustomItem {
      * @return CustomItem
      */
     public static CustomItem getItemByTag(ItemStack item) {
-        String tag = getTag(item);
+        String tag = ItemAPI.Utils.getDeobfuscatedTag(getTag(item));
 
         if (tag == null) {
             return null;

@@ -610,7 +610,12 @@ public class Config {
             Map<Character, ItemStack> ingredientMap = item.getCraftingRecipe().getRecipe().getIngredientMap();
 
             for (char placeholder : ingredientMap.keySet()) {
-                config.set(path + ".recipe.crafting.materials." + placeholder, ingredientMap.get(placeholder).getType().toString());
+                ItemStack ingredientStack = ingredientMap.get(placeholder);
+
+                if (ingredientStack != null) {
+                    config.set(path + ".recipe.crafting.materials." + placeholder, ingredientMap.get(placeholder).getType().toString());
+                    MythicItems.getInstance().getConsole().sendMessage("Set ingredient for: " + placeholder);
+                }
             }
 
             if (item.getCraftingRecipe().hasCustomIngredients()) {
@@ -618,7 +623,7 @@ public class Config {
                 Map<Character, String> customIngredientMap = item.getCraftingRecipe().getCustomIngredients();
 
                 for (char placeholder : customIngredientMap.keySet()) {
-                    config.set(path + ".recipe.crafting.materials." + placeholder, "custom/" + ingredientMap.get(placeholder).getType().toString());
+                    config.set(path + ".recipe.crafting.materials." + placeholder, "custom/" + customIngredientMap.get(placeholder));
                 }
             }
         }

@@ -1,9 +1,11 @@
 package com.github.sniddunc.mythicitems.listeners;
 
+import com.github.sniddunc.mythicitems.ItemAPI;
 import com.github.sniddunc.mythicitems.MythicItems;
 import com.github.sniddunc.mythicitems.objects.BrewingRecipe;
 import com.github.sniddunc.mythicitems.objects.CustomItem;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -88,8 +90,19 @@ public class CraftListeners implements Listener {
                     break;
                 }
 
+                // Deobfuscate currentItemTag
+                currentItemTag = ItemAPI.Utils.getDeobfuscatedTag(currentItemTag);
+
+                CustomItem item = CustomItem.getItem(customIngredients.get(placeholder));
+
+                if (item == null) {
+                    MythicItems.getInstance().getConsole().sendMessage(ChatColor.RED + String.format(
+                            "Custom item specified in crafting recipe for '%s' was null. Does it exist?", customIngredients.get(placeholder)));
+                    break;
+                }
+
                 // If the tags don't match
-                if (!currentItemTag.equals(customIngredients.get(placeholder))) {
+                if (!currentItemTag.equals(item.getItemTag())) {
                     isValid = false;
                     break;
                 }

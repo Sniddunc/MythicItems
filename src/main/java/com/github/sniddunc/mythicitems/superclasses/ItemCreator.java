@@ -73,6 +73,9 @@ public abstract class ItemCreator implements ItemSetup {
             }
         }
 
+        // Store result
+        result = item;
+
         /////////////////////////
         // SET UP RECIPES LAST
         // Crafting
@@ -80,6 +83,7 @@ public abstract class ItemCreator implements ItemSetup {
 
         if (craftingRecipe != null) {
             item.setCraftingRecipe(craftingRecipe);
+            itemAPI.getPlugin().getServer().getConsoleSender().sendMessage(ChatColor.RED + "Registering crafting recipe for " + getName());
             itemAPI.getPlugin().getServer().addRecipe(craftingRecipe.getRecipe());
         }
 
@@ -94,11 +98,11 @@ public abstract class ItemCreator implements ItemSetup {
             getBrewingRecipe().registerRecipe();
         }
 
+        // Update result once recipes are setup
+        result = item;
+
         // Register custom item
         itemAPI.registerItem(item);
-
-        // Store result
-        result = item;
 
         return item;
     }
